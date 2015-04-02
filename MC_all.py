@@ -7,22 +7,22 @@ import random
 import xml.etree.ElementTree as ET
 
 # HBV
-file_experiment = ["hbv5.4um.csv", "hbv8.2um.csv", "hbv10.8um.csv"]
-k = 1
-concentration = [5.4, 8.2, 10.8]
-xml_filename = ["hbv600_5.4um.xml", "hbv600_8.2um.xml", "hbv600_10.8um.xml"]
+# file_experiment = ["hbv5.4um.csv", "hbv8.2um.csv", "hbv10.8um.csv"]
+# k = 1 one k per iteration
+# concentration = [5.4, 8.2, 10.8]
+# xml_filename = "hbv600.xml"
 
 # HPV
-# file_experiment = ["hpv0.53um.csv", "hpv0.72um.csv", "hpv0.80um.csv"]
-# k = 7.04e-08
-# concentration = [0.53, 0.72, 0.80]
-# xml_filename = ["hpv360_0.53um.xml", "hpv360_0.72um.xml", "hpv360_0.80um.xml"]
+file_experiment = ["hpv0.53um.csv", "hpv0.72um.csv", "hpv0.80um.csv"]
+k = 7.04e-08
+concentration = [0.53, 0.72, 0.80]
+xml_filename = "hpv360_0.53um.xml"
 
 # CCMV
 # file_experiment = ["ccmv14.1um.csv", "ccmv15.6um.csv", "ccmv18.75um.csv"]
-# k = 1 one k per concentration
+# k = 1 one k per concentration per iteration
 # concentration = [14.1, 15.6, 18.75]
-# xml_filename = ["ccmv450_14.1um.xml", "ccmv450_15.6um.xml", "ccmv450_18.75um.xml"]
+# xml_filename = "ccmv450_14.1um.xml"
 
 def read_from_file(filename):
 	data_file = filename
@@ -38,21 +38,24 @@ def java_to_list(data_raw):
 def parse_csv(filename):
 	data_raw = read_from_file(filename)
 	data_experiment = [map(eval, x.strip().split()) for x in data_raw]
-	return data_experiment
+	one_experiment = [[], []]
+	one_experiment[0] = [x[0][0] for x in data_experiment]
+	one_experiment[1] = [x[0][1] for x in data_experiment]
+	return one_experiment
 
 def light_scattering(data_time_t, c):
 	st = float(sum([y*i*i for i, y in enumerate(data_time_t)])) / float(sum([y*i for i, y in enumerate(data_time_t)]))
 	return k * concentration[c] * st
 
-def parse_java_50(time, c):
+def parse_java_50(time, c, fac):
 	sls_all_50 = [[] for i in range(len(time))]
 	for i in range(1, 2): #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-		filename = "java_" + str(concentration[c]) + "_" + str(i) + ".txt"
+		filename = "java_" + str(i) + ".txt"
 		data_raw = read_from_file(filename)
 		data_simulate = java_to_list(data_raw)
 		j = 0
 		for i, x in enumerate(time):
-			while data_simulate[j][0] < x:
+			while data_simulate[j][0] * fac < x:
 				j += 1
 			sls_all_50[i].append(light_scattering(data_simulate[j], c))
 	sls_avg = [numpy.mean(x) for x in sls_all_50]
@@ -106,14 +109,14 @@ def write_candidate_file(new_candidate):
 	current_file.write("\t".join([str(x) for x in new_candidate]))
 
 # HBV modify
-def modify_xml(new_candidate, c):
-	tree = ET.parse(xml_filename[c])
-	root = tree.getroot()
-	for i in range(len(new_candidate)):
-		part = root[2][i][1]
-		part.set('bindTime', str(new_candidate[(i % 4) * 2]))
-		part.set('breakTime', str(new_candidate[(i % 4) * 2 + 1]))
-	tree.write(xml_filename[c])
+# def modify_xml(new_candidate, c):
+# 	tree = ET.parse(xml_filename[c])
+# 	root = tree.getroot()
+# 	for i in range(len(new_candidate)):
+# 		part = root[2][i][1]
+# 		part.set('bindTime', str(new_candidate[(i % 4) * 2]))
+# 		part.set('breakTime', str(new_candidate[(i % 4) * 2 + 1]))
+# 	tree.write(xml_filename[c])
 
 # HPV modify
 def modify_xml(new_candidate, c):
@@ -148,37 +151,47 @@ def modify_xml(new_candidate, c):
 # CCMV modify
 
 if __name__ == "__main__":
-	energy_temp_all = []
+	experiment = []
+	sls_avg_s = []
+	factor = [concentration[0] / x for x in concentration]
 	for i, temp in enumerate(file_experiment):
-		data_experiment = parse_csv(temp)
-		time = [x[0][0] for x in data_experiment]
-		# Read 50 .txt files from java out put. java_concentration_index.txt, index in [1,50]. (result from simulate candidate)
-		# Each turn into light scattering. Calculate average. 
-		sls_avg = parse_java_50(time, i)
-		e = energy_temp(sls_avg, data_experiment)
-		energy_temp_all.append(e)
-	energy_candidate = energy(energy_temp_all)		
-	# Get current parameter info.
-	energy_current = current()[-1]
-	# Decide move or not, if move, change current
-	if move(energy_candidate, energy_current):
-		now = candidate()
-		now.append(energy_candidate)
-		write_current_file(now)
-	else:
-		now = current()
-	# Write current into series
-	write_series_file(now)
-	# disturbe current, get new parameter set
-	new_candidate = disturbe(now[:-1])
-	# Write into candidate.txt and modify .xml
-	write_candidate_file(new_candidate)
-	factor = [x / concentration[0] for x in concentration]
-	for i, temp in enumerate(factor):
-		new_candidate_scale = []
-		for j, x in enumerate(new_candidate):
-			if j % 2 ==0:
-				new_candidate_scale.append(x * factor[i])
-			else:
-				new_candidate_scale.append(x)
-		modify_xml(new_candidate_scale, i)
+		experiment.append(parse_csv(temp))
+		sls_avg_s.append(parse_java_50(experiment[i][0], i, factor[i]))
+		print sls_avg_s[i][-1]
+	# print [x[0][-1] for x in experiment]
+	
+
+	# energy_temp_all = []
+	# for i, temp in enumerate(file_experiment):
+	# 	data_experiment = parse_csv(temp)
+	# 	time = [x[0][0] for x in data_experiment]
+	# 	# Read 50 .txt files from java out put. java_concentration_index.txt, index in [1,50]. (result from simulate candidate)
+	# 	# Each turn into light scattering. Calculate average. 
+	# 	sls_avg = parse_java_50(time, i)
+	# 	e = energy_temp(sls_avg, data_experiment)
+	# 	energy_temp_all.append(e)
+	# energy_candidate = energy(energy_temp_all)		
+	# # Get current parameter info.
+	# energy_current = current()[-1]
+	# # Decide move or not, if move, change current
+	# if move(energy_candidate, energy_current):
+	# 	now = candidate()
+	# 	now.append(energy_candidate)
+	# 	write_current_file(now)
+	# else:
+	# 	now = current()
+	# # Write current into series
+	# write_series_file(now)
+	# # disturbe current, get new parameter set
+	# new_candidate = disturbe(now[:-1])
+	# # Write into candidate.txt and modify .xml
+	# write_candidate_file(new_candidate)
+	# factor = [x / concentration[0] for x in concentration]
+	# for i, temp in enumerate(factor):
+	# 	new_candidate_scale = []
+	# 	for j, x in enumerate(new_candidate):
+	# 		if j % 2 ==0:
+	# 			new_candidate_scale.append(x * factor[i])
+	# 		else:
+	# 			new_candidate_scale.append(x)
+	# 	modify_xml(new_candidate_scale, i)
