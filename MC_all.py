@@ -95,7 +95,7 @@ def write_current_file(now):
 
 def write_series_file(now):
 	series_file = open("series.txt", "a")
-	series_file.write("\n" + "\t".join([str(x) for x in now[:-1]]))
+	series_file.write("\n" + "\t".join([str(x) for x in now]))
 
 def disturbe(parameter_set):
 	parameter_number = len(parameter_set)

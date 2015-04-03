@@ -27,12 +27,12 @@
       </BindingSiteType>
       <BindingSiteType name="bst0c">
          <Tolerance bending="0.2" rotation="0.2" translation="0.2" />
-         <Partner angle="0" bindTime="1000000.0" breakTime="10" fastBindTime="1e-011" name="bst0d" />
+         <Partner angle="0" bindTime="755256.977712" breakTime="10" fastBindTime="1e-011" name="bst0d" />
          <Pos x="0.149982710575265" y="-0.291469157528006" z="-0.105146222423827" />
       </BindingSiteType>
       <BindingSiteType name="bst0d">
          <Tolerance bending="0.2" rotation="0.2" translation="0.2" />
-         <Partner angle="0" bindTime="1000000.0" breakTime="10" fastBindTime="1e-011" name="bst0c" />
+         <Partner angle="0" bindTime="755256.977712" breakTime="10" fastBindTime="1e-011" name="bst0c" />
          <Pos x="0.0499827105752648" y="0.238925460842346" z="-0.242736820767703" />
       </BindingSiteType>
       <BindingSiteType name="bst0e">
