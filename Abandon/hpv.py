@@ -10,7 +10,7 @@ import xml.etree.ElementTree as ET
 file_experiment = ["hpv0.53um.csv", "hpv0.72um.csv", "hpv0.80um.csv"]
 k = 7.04e-08
 concentration = [0.53, 0.72, 0.80]
-xml_filename = ["hpv360_0.53um.xml", "hpv360_0.72um.xml", "hpv360_0.80um.xml"]
+xml_filename = "hpv360.xml"
 
 def read_from_file(filename):
 	data_file = filename
@@ -26,32 +26,35 @@ def java_to_list(data_raw):
 def parse_csv(filename):
 	data_raw = read_from_file(filename)
 	data_experiment = [map(eval, x.strip().split()) for x in data_raw]
-	return data_experiment
+	one_experiment = [[], []]
+	one_experiment[0] = [x[0][0] for x in data_experiment]
+	one_experiment[1] = [x[0][1] for x in data_experiment]
+	return one_experiment
 
 def light_scattering(data_time_t, c):
 	st = float(sum([y*i*i for i, y in enumerate(data_time_t)])) / float(sum([y*i for i, y in enumerate(data_time_t)]))
 	return k * concentration[c] * st
 
-def parse_java_50(time, c):
+def parse_java_50(time, c, fac):
 	sls_all_50 = [[] for i in range(len(time))]
-	for i in range(1, 51): #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-		filename = "java_" + str(concentration[c]) + "_" + str(i) + ".txt"
+	for i in range(1, 2): #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+		filename = "java_" + str(i) + ".txt"
 		data_raw = read_from_file(filename)
 		data_simulate = java_to_list(data_raw)
 		j = 0
 		for i, x in enumerate(time):
-			while data_simulate[j][0] < x:
+			while data_simulate[j][0] * fac < x:
 				j += 1
 			sls_all_50[i].append(light_scattering(data_simulate[j], c))
 	sls_avg = [numpy.mean(x) for x in sls_all_50]
 	return sls_avg
 
-def energy_temp(sls_avg, data_experiment):
-	return sum([(x - y[0][1])**2 for x, y in zip(sls_avg, data_experiment)]) / len(data_experiment)
-
-def energy(energy_temp_all):
-	energy_candidate = math.sqrt(sum(energy_temp_all) / len(energy_temp_all))
-	return energy_candidate
+def energy(experiment, sls):
+	avg_sum = []
+	for i in range(len(experiment)):
+		temp = sum([(x - y)**2 for x, y in zip(experiment[i][1], sls[i])]) / experiment[i][0][-1]
+		avg_sum.append(temp)
+	return math.sqrt(sum(avg_sum) / len(experiment))
 
 def current():
 	data_raw = read_from_file("current.txt")
@@ -94,8 +97,8 @@ def write_candidate_file(new_candidate):
 	current_file.write("\t".join([str(x) for x in new_candidate]))
 
 # HPV modify
-def modify_xml(new_candidate, c):
-	tree = ET.parse(xml_filename[c])
+def modify_xml(new_candidate):
+	tree = ET.parse(xml_filename)
 	root = tree.getroot()
 	for i in range(len(new_candidate) / 2):
 		if i == 0:
@@ -121,19 +124,21 @@ def modify_xml(new_candidate, c):
 			part = root[2][4][1]
 			part.set('bindTime', str(new_candidate[6]))
 			part.set('breakTime', str(new_candidate[7]))
-		tree.write(xml_filename[c])
+		tree.write(xml_filename)
 
 if __name__ == "__main__":
-	energy_temp_all = []
+	# Hold experiment data
+	experiment = []
+	# Hold simulation data
+	sls = []
+	factor = [concentration[0] / x for x in concentration]
 	for i, temp in enumerate(file_experiment):
-		data_experiment = parse_csv(temp)
-		time = [x[0][0] for x in data_experiment]
-		# Read 50 .txt files from java out put. java_concentration_index.txt, index in [1,50]. (result from simulate candidate)
-		# Each turn into light scattering. Calculate average. 
-		sls_avg = parse_java_50(time, i)
-		e = energy_temp(sls_avg, data_experiment)
-		energy_temp_all.append(e)
-	energy_candidate = energy(energy_temp_all)		
+		experiment.append(parse_csv(temp))
+		# Read 50 .txt files from java out put. java_index.txt, index in [1,50]. (result from simulate candidate)
+		# Each turn into light scattering. Calculate average.
+		# Parse for different concentration accordingly, concentration specified by factor vector
+		sls.append(parse_java_50(experiment[i][0], i, factor[i]))
+	energy_candidate = energy(experiment, sls)
 	# Get current parameter info.
 	energy_current = current()[-1]
 	# Decide move or not, if move, change current
@@ -143,18 +148,10 @@ if __name__ == "__main__":
 		write_current_file(now)
 	else:
 		now = current()
-	# Write now into series
+	# Write current into series
 	write_series_file(now)
-	# disturbe now, get new parameter set
+	# disturbe current, get new parameter set
 	new_candidate = disturbe(now[:-1])
 	# Write into candidate.txt and modify .xml
 	write_candidate_file(new_candidate)
-	factor = [concentration[0] / x for x in concentration]
-	for i, temp in enumerate(factor):
-		new_candidate_scale = []
-		for j, x in enumerate(new_candidate):
-			if j % 2 ==0:
-				new_candidate_scale.append(x * factor[i])
-			else:
-				new_candidate_scale.append(x)
-		modify_xml(new_candidate_scale, i)
+	modify_xml(new_candidate)
