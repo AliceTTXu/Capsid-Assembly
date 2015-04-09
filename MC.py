@@ -144,9 +144,35 @@ def modify_xml(new_candidate, c):
 			part = root[2][4][1]
 			part.set('bindTime', str(new_candidate[6]))
 			part.set('breakTime', str(new_candidate[7]))
-		tree.write(xml_filename[c])
+	tree.write(xml_filename[c])
 
 # CCMV modify
+def modify_xml(new_candidate, c):
+	tree = ET.parse(xml_filename[c])
+	root = tree.getroot()
+	for i in range(len(new_candidate) / 2):
+		if i == 0:
+			for j in [1, 2]:
+				part1 = root[2][0][j]
+				part1.set('bindTime', str(new_candidate[0]))
+				part1.set('breakTime', str(new_candidate[1]))
+				part2 = root[2][3 + j * 2][1]
+				part2.set('bindTime', str(new_candidate[0]))
+				part2.set('breakTime', str(new_candidate[1]))
+		if i == 1:
+			for j in [1, 2]:
+				part1 = root[2][1][j]
+				part1.set('bindTime', str(new_candidate[2]))
+				part1.set('breakTime', str(new_candidate[3]))
+				part2 = root[2][3 + j * 2 - 1][1]
+				part2.set('bindTime', str(new_candidate[2]))
+				part2.set('breakTime', str(new_candidate[3]))
+		if i == 2:
+			for j in [2, 3]:
+				part = root[2][j][1]
+				part.set('bindTime', str(new_candidate[4]))
+				part.set('breakTime', str(new_candidate[5]))
+	tree.write(xml_filename[c])
 
 if __name__ == "__main__":
 	energy_temp_all = []
