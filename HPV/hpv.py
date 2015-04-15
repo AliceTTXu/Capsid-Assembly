@@ -7,9 +7,6 @@ import random
 import xml.etree.ElementTree as ET
 
 # HPV
-file_experiment = ["hpv0.53um.csv", "hpv0.72um.csv", "hpv0.80um.csv"]
-k = 7.04e-08
-concentration = [0.53, 0.72, 0.80]
 xml_filename = ["hpv360_0.53um.xml", "hpv360_0.72um.xml", "hpv360_0.80um.xml"]
 
 def read_from_file(filename):
@@ -19,8 +16,8 @@ def read_from_file(filename):
 	datafile.close()
 	return data_raw
 
-def java_to_list(data_raw):
-	data = [map(eval, x.strip().split()) for i, x in enumerate(data_raw) if i not in [0, 1]]
+def pre_to_list(data_raw):
+	data = [map(eval, x.strip().split()) for x in data_raw]
 	return data
 
 def parse_csv(filename):
@@ -28,21 +25,14 @@ def parse_csv(filename):
 	data_experiment = [map(eval, x.strip().split()) for x in data_raw]
 	return data_experiment
 
-def light_scattering(data_time_t, c):
-	st = float(sum([y*i*i for i, y in enumerate(data_time_t)])) / float(sum([y*i for i, y in enumerate(data_time_t)]))
-	return k * concentration[c] * st
-
 def parse_java_50(time, c):
 	sls_all_50 = [[] for i in range(len(time))]
-	for i in range(1, 51): #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-		filename = "java_" + str(concentration[c]) + "_" + str(i) + ".txt"
+	for i in range(2, 3): #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+		filename = "sls_" + str(concentration[c]) + "_" + str(i) + ".txt"
 		data_raw = read_from_file(filename)
-		data_simulate = java_to_list(data_raw)
-		j = 0
-		for i, x in enumerate(time):
-			while data_simulate[j][0] < x:
-				j += 1
-			sls_all_50[i].append(light_scattering(data_simulate[j], c))
+		data_simulate = pre_to_list(data_raw)
+		for i, x in enumerate(data_simulate):
+			sls_all_50[i].append(x)
 	sls_avg = [numpy.mean(x) for x in sls_all_50]
 	return sls_avg
 
@@ -77,10 +67,12 @@ def move(energy_candidate, energy_current):
 def write_current_file(now):
 	current_file = open("current.txt", "w")
 	current_file.write("\t".join([str(x) for x in now]))
+	current_file.close()
 
 def write_series_file(now):
 	series_file = open("series.txt", "a")
 	series_file.write("\n" + "\t".join([str(x) for x in now]))
+	series_file.close()
 
 def disturbe(parameter_set):
 	parameter_number = len(parameter_set)
@@ -92,6 +84,7 @@ def disturbe(parameter_set):
 def write_candidate_file(new_candidate):
 	current_file = open("candidate.txt", "w")
 	current_file.write("\t".join([str(x) for x in new_candidate]))
+	current_file.close()
 
 # HPV modify
 def modify_xml(new_candidate, c):

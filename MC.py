@@ -52,10 +52,10 @@ def parse_java_50(time, c):
 		data_raw = read_from_file(filename)
 		data_simulate = java_to_list(data_raw)
 		j = 0
-		for i, x in enumerate(time):
+		for k, x in enumerate(time):
 			while data_simulate[j][0] < x:
 				j += 1
-			sls_all_50[i].append(light_scattering(data_simulate[j], c))
+			sls_all_50[k].append(light_scattering(data_simulate[j], c))
 	sls_avg = [numpy.mean(x) for x in sls_all_50]
 	return sls_avg
 

@@ -1,13 +1,13 @@
 <System xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" reloaded="no" type="test" xmlversion="1.4" xsi:schemaLocation="http://www.example.org/DessaXML DessaXML.xsd">
    <Solution pH="7" temp="50" volume="20" />
     <Assemblies>
-      <Assembly amount="300" name="assem">
+      <Assembly amount="600" name="assem">
          <Subunit name="0" type="only0">
             <Pos x="0" y="0" z="0" />
             <Domain curconf="bs0" id="0" />
          </Subunit>
       </Assembly>
-      <Assembly amount="60" name="assem">
+      <Assembly amount="120" name="assem">
          <Subunit name="1" type="only1">
             <Pos x="0" y="0" z="0" />
             <Domain curconf="bs1" id="1" />
