@@ -1,0 +1,9 @@
+#PBS -e move.err
+#PBS -o move.out
+#PBS -l nodes=1:ppn=4
+#PBS -l walltime=24:00:00
+#PBS -q rs1
+cd $PBS_O_WORKDIR
+
+module load python27-extras
+python hbv.py

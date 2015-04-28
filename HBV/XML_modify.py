@@ -104,4 +104,5 @@ if __name__ == "__main__":
 				new_candidate_scale.append(x * factor[i])
 			else:
 				new_candidate_scale.append(x)
+		print new_candidate_scale
 		modify_xml(new_candidate_scale, i)

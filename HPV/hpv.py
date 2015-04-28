@@ -7,6 +7,9 @@ import random
 import xml.etree.ElementTree as ET
 
 # HPV
+k = 7.04e-08
+concentration = [0.53, 0.72, 0.80]
+file_experiment = ["hpv0.53um.csv", "hpv0.72um.csv", "hpv0.80um.csv"]
 xml_filename = ["hpv360_0.53um.xml", "hpv360_0.72um.xml", "hpv360_0.80um.xml"]
 
 def read_from_file(filename):
@@ -27,7 +30,7 @@ def parse_csv(filename):
 
 def parse_java_50(time, c):
 	sls_all_50 = [[] for i in range(len(time))]
-	for i in range(2, 3): #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	for i in range(1, 51): #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 		filename = "sls_" + str(concentration[c]) + "_" + str(i) + ".txt"
 		data_raw = read_from_file(filename)
 		data_simulate = pre_to_list(data_raw)
@@ -75,10 +78,15 @@ def write_series_file(now):
 	series_file.close()
 
 def disturbe(parameter_set):
-	parameter_number = len(parameter_set)
+	parameter_number = len(parameter_set) / 2 + 1
 	disturbe_index = int(random.uniform(0, parameter_number))
-	disturbe_scale = random.uniform(0.5, 1.5)
-	parameter_set[disturbe_index] *= disturbe_scale
+	disturbe_scale = random.uniform(0.95, 1.05)
+	if disturbe_index == 0:
+		for i in range(len(parameter_set)):
+			if i % 2 == 0:
+				parameter_set[i] *= disturbe_scale
+	else:
+		parameter_set[2 * disturbe_index - 1] *= disturbe_scale
 	return parameter_set
 
 def write_candidate_file(new_candidate):

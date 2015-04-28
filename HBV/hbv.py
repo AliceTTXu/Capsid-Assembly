@@ -7,22 +7,9 @@ import random
 import xml.etree.ElementTree as ET
 
 # HBV
-# file_experiment = ["hbv5.4um.csv", "hbv8.2um.csv", "hbv10.8um.csv"]
-# k = 1
-# concentration = [5.4, 8.2, 10.8]
-# xml_filename = ["hbv600_5.4um.xml", "hbv600_8.2um.xml", "hbv600_10.8um.xml"]
-
-# HPV
-file_experiment = ["hpv0.53um.csv", "hpv0.72um.csv", "hpv0.80um.csv"]
-k = 7.04e-08
-concentration = [0.53, 0.72, 0.80]
-xml_filename = ["hpv360_0.53um.xml", "hpv360_0.72um.xml", "hpv360_0.80um.xml"]
-
-# CCMV
-# file_experiment = ["ccmv14.1um.csv", "ccmv15.6um.csv", "ccmv18.75um.csv"]
-# k = 1 one k per concentration
-# concentration = [14.1, 15.6, 18.75]
-# xml_filename = ["ccmv450_14.1um.xml", "ccmv450_15.6um.xml", "ccmv450_18.75um.xml"]
+file_experiment = ["hbv5.4um_s.csv", "hbv8.2um_s.csv", "hbv10.8um_s.csv"]
+concentration = [5.4, 8.2, 10.8]
+xml_filename = ["hbv600_5.4um.xml", "hbv600_8.2um.xml", "hbv600_10.8um.xml"]
 
 def read_from_file(filename):
 	data_file = filename
@@ -42,17 +29,28 @@ def parse_csv(filename):
 
 def parse_java_50(time, c):
 	sls_all_50 = [[] for i in range(len(time))]
-	for i in range(1, 51): #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	for i in range(1, 2): #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 		filename = "sls_" + str(concentration[c]) + "_" + str(i) + ".txt"
 		data_raw = read_from_file(filename)
 		data_simulate = pre_to_list(data_raw)
-		for i, x in enumerate(data_simulate):
-			sls_all_50[i].append(x)
+		for j, x in enumerate(data_simulate):
+			sls_all_50[j].append(x)
 	sls_avg = [numpy.mean(x) for x in sls_all_50]
 	return sls_avg
 
-def energy_temp(sls_avg, data_experiment):
-	return sum([(x - y[0][1])**2 for x, y in zip(sls_avg, data_experiment)]) / len(data_experiment)
+def kcal_pre(data_experiment, sls_avg, c):
+	temp_up = [x[0][1] * (y - 1) for x, y in zip(data_experiment, sls_avg)]
+	temp_down = [(x[0][1] * (y - 1))**2 for x, y in zip(data_experiment, sls_avg)]
+	up = concentration[c] * sum(temp_up) / len(temp_up)
+	down = (concentration[c]**2) * sum(temp_up) / len(temp_up)
+	return (up, down)
+
+def kcal(pre_k_all):
+	k = sum([x[0] for x in pre_k_all]) / sum([x[1] for x in pre_k_all])
+	return k
+
+def energy_temp(data_experiment, sls_avg, k):
+	return sum([(x[0][1] - k * y)**2 for x, y in zip(data_experiment, sls_avg)]) / len(data_experiment)
 
 def energy(energy_temp_all):
 	energy_candidate = math.sqrt(sum(energy_temp_all) / len(energy_temp_all))
@@ -105,84 +103,35 @@ def write_candidate_file(new_candidate):
 	current_file.close()
 
 # HBV modify
-# def modify_xml(new_candidate, c):
-# 	tree = ET.parse(xml_filename[c])
-# 	root = tree.getroot()
-# 	for i in range(len(new_candidate)):
-# 		part = root[2][i][1]
-# 		part.set('bindTime', str(new_candidate[(i % 4) * 2]))
-# 		part.set('breakTime', str(new_candidate[(i % 4) * 2 + 1]))
-# 	tree.write(xml_filename[c])
-
-# HPV modify
 def modify_xml(new_candidate, c):
 	tree = ET.parse(xml_filename[c])
 	root = tree.getroot()
-	for i in range(len(new_candidate) / 2):
-		if i == 0:
-			for j in range(1, 6):
-				part = root[2][5][j]
-				part.set('bindTime', str(new_candidate[0]))
-				part.set('breakTime', str(new_candidate[1]))
-			for j in range(6, 11):
-				part = root[2][j][1]
-				part.set('bindTime', str(new_candidate[0]))
-				part.set('breakTime', str(new_candidate[1]))
-		elif i == 1:
-			for j in range(2):
-				part = root[2][j][1]
-				part.set('bindTime', str(new_candidate[2]))
-				part.set('breakTime', str(new_candidate[3]))
-		elif i == 2:
-			for j in range(2, 4):
-				part = root[2][j][1]
-				part.set('bindTime', str(new_candidate[4]))
-				part.set('breakTime', str(new_candidate[5]))
-		elif i == 3:
-			part = root[2][4][1]
-			part.set('bindTime', str(new_candidate[6]))
-			part.set('breakTime', str(new_candidate[7]))
-	tree.write(xml_filename[c])
-
-# CCMV modify
-def modify_xml(new_candidate, c):
-	tree = ET.parse(xml_filename[c])
-	root = tree.getroot()
-	for i in range(len(new_candidate) / 2):
-		if i == 0:
-			for j in [1, 2]:
-				part1 = root[2][0][j]
-				part1.set('bindTime', str(new_candidate[0]))
-				part1.set('breakTime', str(new_candidate[1]))
-				part2 = root[2][3 + j * 2][1]
-				part2.set('bindTime', str(new_candidate[0]))
-				part2.set('breakTime', str(new_candidate[1]))
-		if i == 1:
-			for j in [1, 2]:
-				part1 = root[2][1][j]
-				part1.set('bindTime', str(new_candidate[2]))
-				part1.set('breakTime', str(new_candidate[3]))
-				part2 = root[2][3 + j * 2 - 1][1]
-				part2.set('bindTime', str(new_candidate[2]))
-				part2.set('breakTime', str(new_candidate[3]))
-		if i == 2:
-			for j in [2, 3]:
-				part = root[2][j][1]
-				part.set('bindTime', str(new_candidate[4]))
-				part.set('breakTime', str(new_candidate[5]))
+	for i in range(len(new_candidate)):
+		part = root[2][i][1]
+		part.set('bindTime', str(new_candidate[(i % 4) * 2]))
+		part.set('breakTime', str(new_candidate[(i % 4) * 2 + 1]))
 	tree.write(xml_filename[c])
 
 if __name__ == "__main__":
-	energy_temp_all = []
+	data_all = []
+	pre_k_all = []
 	for i, temp in enumerate(file_experiment):
 		data_experiment = parse_csv(temp)
 		time = [x[0][0] for x in data_experiment]
 		# Read 50 .txt files from java out put. java_concentration_index.txt, index in [1,50]. (result from simulate candidate)
 		# Each turn into light scattering. Calculate average. 
 		sls_avg = parse_java_50(time, i)
-		e = energy_temp(sls_avg, data_experiment)
+		data_all.append((data_experiment, sls_avg))
+		# pre calculate the single k to share among all concentrations
+		pre_k = kcal_pre(data_experiment, sls_avg, i)
+		pre_k_all.append(pre_k)
+	# calculate k
+	k = kcal(pre_k_all)
+	energy_temp_all = []
+	for i, x in enumerate(data_all):
+		e = energy_temp(x[0], x[1], k)
 		energy_temp_all.append(e)
-	energy_candidate = energy(energy_temp_all)		
+	energy_candidate = energy(energy_temp_all)
 	# Get current parameter info.
 	energy_current = current()[-1]
 	# Decide move or not, if move, change current
