@@ -55,7 +55,7 @@ def energy_temp(sls_avg, data_experiment):
 	return sum([(x - y[0][1])**2 for x, y in zip(sls_avg, data_experiment)]) / len(data_experiment)
 
 def energy(energy_temp_all):
-	energy_candidate = math.sqrt(sum(energy_temp_all) / len(energy_temp_all))
+	energy_candidate = sum([math.sqrt(x) for x in energy_temp_all]) / len(energy_temp_all)
 	return energy_candidate
 
 def current():

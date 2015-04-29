@@ -19,7 +19,7 @@ def java_to_list(data_raw):
 
 def light_scattering(data_time_t, c):
 	st = float(sum([y*i*i for i, y in enumerate(data_time_t)])) / float(sum([y*i for i, y in enumerate(data_time_t)]))
-	return concentration[c] * st
+	return st
 
 def parse_csv(filename):
 	data_raw = read_from_file(filename)

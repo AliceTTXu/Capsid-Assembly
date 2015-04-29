@@ -40,20 +40,20 @@ def parse_java_50(time, c):
 
 def kcal_pre(data_experiment, sls_avg, c):
 	temp_up = [x[0][1] * (y - 1) for x, y in zip(data_experiment, sls_avg)]
-	temp_down = [(x[0][1] * (y - 1))**2 for x, y in zip(data_experiment, sls_avg)]
+	temp_down = [(y - 1)**2 for x, y in zip(data_experiment, sls_avg)]
 	up = concentration[c] * sum(temp_up) / len(temp_up)
-	down = (concentration[c]**2) * sum(temp_up) / len(temp_up)
+	down = (concentration[c]**2) * sum(temp_down) / len(temp_down)
 	return (up, down)
 
 def kcal(pre_k_all):
 	k = sum([x[0] for x in pre_k_all]) / sum([x[1] for x in pre_k_all])
 	return k
 
-def energy_temp(data_experiment, sls_avg, k):
-	return sum([(x[0][1] - k * y)**2 for x, y in zip(data_experiment, sls_avg)]) / len(data_experiment)
+def energy_temp(data_experiment, sls_avg, k, c):
+	return sum([(x[0][1] + k * concentration[c] - k * concentration[c] * y)**2 for x, y in zip(data_experiment, sls_avg)]) / len(data_experiment)
 
 def energy(energy_temp_all):
-	energy_candidate = math.sqrt(sum(energy_temp_all) / len(energy_temp_all))
+	energy_candidate = sum([math.sqrt(x) for x in energy_temp_all]) / len(energy_temp_all)
 	return energy_candidate
 
 def current():
@@ -122,14 +122,14 @@ if __name__ == "__main__":
 		# Each turn into light scattering. Calculate average. 
 		sls_avg = parse_java_50(time, i)
 		data_all.append((data_experiment, sls_avg))
-		# pre calculate the single k to share among all concentrations
+		# pre calculate the single k to share among all concentration
 		pre_k = kcal_pre(data_experiment, sls_avg, i)
 		pre_k_all.append(pre_k)
 	# calculate k
 	k = kcal(pre_k_all)
 	energy_temp_all = []
 	for i, x in enumerate(data_all):
-		e = energy_temp(x[0], x[1], k)
+		e = energy_temp(x[0], x[1], k, i)
 		energy_temp_all.append(e)
 	energy_candidate = energy(energy_temp_all)
 	# Get current parameter info.
