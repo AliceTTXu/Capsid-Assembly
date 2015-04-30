@@ -29,7 +29,7 @@ def parse_csv(filename):
 
 def parse_java_50(time, c):
 	sls_all_50 = [[] for i in range(len(time))]
-	for i in range(1, 2): #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	for i in range(1, 51): #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 		filename = "sls_" + str(concentration[c]) + "_" + str(i) + ".txt"
 		data_raw = read_from_file(filename)
 		data_simulate = pre_to_list(data_raw)
@@ -83,7 +83,7 @@ def write_current_file(now):
 
 def write_series_file(now):
 	series_file = open("series.txt", "a")
-	series_file.write("\n" + "\t".join([str(x) for x in now[:-1]]))
+	series_file.write("\n" + "\t".join([str(x) for x in now]))
 
 def disturbe(parameter_set):
 	parameter_number = len(parameter_set) / 2 + 1

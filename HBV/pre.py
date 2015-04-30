@@ -3,7 +3,7 @@
 import sys
 import math
 
-file_experiment = ["hbv5.4um.csv", "hbv8.2um.csv", "hbv10.8um.csv"]
+file_experiment = ["hbv5.4um_s.csv", "hbv8.2um_s.csv", "hbv10.8um_s.csv"]
 concentration = [5.4, 8.2, 10.8]
 
 def read_from_file(filename):

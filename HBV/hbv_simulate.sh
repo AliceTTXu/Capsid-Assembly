@@ -1,5 +1,4 @@
 header="#!/bin/bash"
-msg='queueing'
 
 for i in `seq 1000`
 	do
@@ -28,7 +27,7 @@ for i in `seq 1000`
                 #PBS -q rs1
                 cd $PBS_O_WORKDIR' >> simulate_8.2_${j}.job
 
-                commandstr='java -cp .:vecmath-1.5.2.jar Test hpv600_8.2um.xml 4000 550 $RANDOM 120 > java_8.2_'${j}'.txt\npython pre.py java_8.2_'${j}'.txt'
+                commandstr='java -cp .:vecmath-1.5.2.jar Test hbv600_8.2um.xml 4000 550 $RANDOM 120 > java_8.2_'${j}'.txt\npython pre.py java_8.2_'${j}'.txt'
                 echo -e $commandstr >> simulate_8.2_${j}.job
                 qsub -q rs1 simulate_8.2_${j}.job
                 rm simulate_8.2_${j}.job
@@ -70,3 +69,4 @@ for i in `seq 1000`
         done
 
 done
+

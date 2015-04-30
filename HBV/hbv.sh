@@ -14,5 +14,5 @@ cd $PBS_O_WORKDIR' >> main.job
 
 commandstr='bash ./hbv_simulate.sh'
 echo -e $commandstr >> main.job
-# qsub -q rs1 main.job
-# rm main.job
+qsub -q rs1 main.job
+rm main.job
