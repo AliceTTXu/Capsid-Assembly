@@ -14,22 +14,31 @@ off_c = series(:, 6);
 off_d = series(:, 8);
 
 label = [on, off_a, off_b, off_c, off_d];
+label_name = ['on   '; 'off_a'; 'off_b'; 'off_c'; 'off_d'];
+label_name_string = cellstr(label_name);
 combs = combntns([1, 2, 3, 4, 5],2);
 
-plot(off_a, off_a, '.');
+for i = 1: length(combs)    
+    figure, plot(label(:, combs(i, 1)), label(:, combs(i, 2)), '.');
+    xlabel(label_name_string(combs(i, 1)));
+    ylabel(label_name_string(combs(i, 2)));
+end
 
-% for i = 1:series_len
-%     series(i, :) = series(i, :) ./ base;
-% end
-% 
-% series = series - 1;
-% 
-% % index = [1: series_len]';
-% 
+cov(label, 1)
+corrcoef(label)
+
+for i = 1:series_len
+    series(i, :) = series(i, :) ./ base;
+end
+
+series = series - 1;
+
+% index = [1: series_len]';
+
 % middle = ones(1, series_len);
 % low = -0.1 * middle;
 % high = 0.1 * middle;
-
+% 
 % figure, bar(series(:, 1));
 % hold on
 % plot(low, 'r');
@@ -39,7 +48,7 @@ plot(off_a, off_a, '.');
 % ylim([-0.2 0.2])
 % title('HBV on-rate')
 % 
-% for i = 1:4
+% for i = 1: 4
 %     figure, bar(series(:, i * 2));
 %     hold on
 %     plot(low, 'r');
@@ -48,4 +57,5 @@ plot(off_a, off_a, '.');
 %     xlim([1 series_len])
 %     ylim([-0.4 0.3])
 %     title('HBV off-rate') 
+%     ylabel(label_name_string(i + 1));
 % end

@@ -108,8 +108,18 @@ def modify_xml(new_candidate, c):
 	root = tree.getroot()
 	for i in range(len(new_candidate)):
 		part = root[2][i][1]
-		part.set('bindTime', str(new_candidate[(i % 4) * 2]))
-		part.set('breakTime', str(new_candidate[(i % 4) * 2 + 1]))
+		if i == 0 or i == 1:			
+			part.set('bindTime', str(new_candidate[0]))
+			part.set('breakTime', str(new_candidate[1]))
+		elif i == 2 or i == 4:
+			part.set('bindTime', str(new_candidate[0]))
+			part.set('breakTime', str(new_candidate[3]))
+		elif i == 3 or i == 5:
+			part.set('bindTime', str(new_candidate[0]))
+			part.set('breakTime', str(new_candidate[5]))
+		elif i == 6 or i == 7:
+			part.set('bindTime', str(new_candidate[0]))
+			part.set('breakTime', str(new_candidate[7]))
 	tree.write(xml_filename[c])
 
 if __name__ == "__main__":
